@@ -1,21 +1,22 @@
-function appendValue(value) {
+const appendValue = (value) => {
   document.getElementById('display').value += value
 }
-function clearDisplay() {
+const clearDisplay = () => {
   document.getElementById('display').value = ''
 }
-function backspace() {
+const backspace = () => {
   let display = document.getElementById('display')
   display.value = display.value.slice(0, -1)
 }
-function sanitizeExpression(expression) {
+const sanitizeExpression = (expression) => {
   return expression
     .replace(/\+{2,}/g, '+') // Replace multiple '+' with a single '+'
     .replace(/-{2,}/g, '+') // Replace '--' with '+'
     .replace(/\+-| -\+/g, '-') // Normalize '+-' or '-+'
     .replace(/^\+/, '') // Remove leading '+' if any
+    .replace(/%/g, '*0.01') // percentage into vale
 }
-function calculateResult() {
+const calculateResult = () => {
   let display = document.getElementById('display')
   let sanitizedExpression = sanitizeExpression(display.value)
 

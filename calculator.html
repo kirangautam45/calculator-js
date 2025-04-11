@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Calculator</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧮</text></svg>"
+      type="image/svg+xml"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f5f5f5;
+      }
+
+      .calculator {
+        background-color: #222;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        width: 30%;
+      }
+
+      .title {
+        color: white;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .title-icon {
+        margin-right: 5px;
+        font-size: 1.4rem;
+      }
+
+      .display {
+        background-color: #3b3b3b;
+        border-radius: 5px;
+        color: white;
+        font-size: 2rem;
+        height: 70px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        padding: 10px;
+        text-align: right;
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 10px;
+      }
+
+      button {
+        background-color: #4d4d4d;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        cursor: pointer;
+        font-size: 1.2rem;
+        height: 50px;
+      }
+
+      button:hover {
+        background-color: #666;
+      }
+
+      .operator {
+        background-color: #ff9500;
+      }
+
+      .operator:hover {
+        background-color: #ffb04d;
+      }
+
+      .clear,
+      .equal {
+        grid-column: span 2;
+      }
+
+      .clear {
+        background-color: #fc5c65;
+      }
+
+      .clear:hover {
+        background-color: #fd7c85;
+      }
+
+      .equal {
+        background-color: #2ecc71;
+      }
+
+      .equal:hover {
+        background-color: #4cd986;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calculator">
+      <div class="title"><span class="title-icon">🧮</span> Calculator</div>
+      <div class="display" id="display">0</div>
+      <div class="buttons">
+        <button class="clear" onclick="clearDisplay()">AC</button>
+        <button onclick="appendOperator('%')">%</button>
+        <button class="operator" onclick="appendOperator('/')">/</button>
+        <button onclick="appendNumber(7)">7</button>
+        <button onclick="appendNumber(8)">8</button>
+        <button onclick="appendNumber(9)">9</button>
+        <button class="operator" onclick="appendOperator('*')">×</button>
+        <button onclick="appendNumber(4)">4</button>
+        <button onclick="appendNumber(5)">5</button>
+        <button onclick="appendNumber(6)">6</button>
+        <button class="operator" onclick="appendOperator('-')">-</button>
+        <button onclick="appendNumber(1)">1</button>
+        <button onclick="appendNumber(2)">2</button>
+        <button onclick="appendNumber(3)">3</button>
+        <button class="operator" onclick="appendOperator('+')">+</button>
+        <button onclick="appendNumber(0)">0</button>
+        <button onclick="appendDecimal()">.</button>
+        <button class="equal" onclick="calculate()">=</button>
+      </div>
+    </div>
+
+    <script>
+      let displayValue = '0'
+      let pendingOperation = null
+      let firstOperand = null
+      let waitingForSecondOperand = false
+
+      const display = document.getElementById('display')
+
+      function updateDisplay() {
+        display.textContent = displayValue
+      }
+
+      function clearDisplay() {
+        displayValue = '0'
+        pendingOperation = null
+        firstOperand = null
+        waitingForSecondOperand = false
+        updateDisplay()
+      }
+
+      function appendNumber(number) {
+        if (waitingForSecondOperand) {
+          displayValue = String(number)
+          waitingForSecondOperand = false
+        } else {
+          displayValue =
+            displayValue === '0' ? String(number) : displayValue + number
+        }
+        updateDisplay()
+      }
+
+      function appendDecimal() {
+        if (waitingForSecondOperand) {
+          displayValue = '0.'
+          waitingForSecondOperand = false
+          updateDisplay()
+          return
+        }
+
+        if (!displayValue.includes('.')) {
+          displayValue += '.'
+          updateDisplay()
+        }
+      }
+
+      function appendOperator(operator) {
+        const inputValue = parseFloat(displayValue)
+
+        if (firstOperand === null) {
+          firstOperand = inputValue
+        } else if (pendingOperation) {
+          const result = performCalculation()
+          displayValue = String(result)
+          firstOperand = result
+        }
+
+        waitingForSecondOperand = true
+        pendingOperation = operator
+        updateDisplay()
+      }
+
+      function performCalculation() {
+        const secondOperand = parseFloat(displayValue)
+        let result = 0
+
+        switch (pendingOperation) {
+          case '+':
+            result = firstOperand + secondOperand
+            break
+          case '-':
+            result = firstOperand - secondOperand
+            break
+          case '*':
+            result = firstOperand * secondOperand
+            break
+          case '/':
+            result = firstOperand / secondOperand
+            break
+          case '%':
+            result = firstOperand % secondOperand
+            break
+          default:
+            return secondOperand
+        }
+
+        return Math.round(result * 1000000) / 1000000 // Handle floating point precision
+      }
+
+      function calculate() {
+        if (!pendingOperation) {
+          return
+        }
+
+        const result = performCalculation()
+        displayValue = String(result)
+        firstOperand = result
+        pendingOperation = null
+        waitingForSecondOperand = false
+        updateDisplay()
+      }
+
+      // Initialize display
+      updateDisplay()
+    </script>
+  </body>
+</html>
